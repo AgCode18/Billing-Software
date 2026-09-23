@@ -6,6 +6,8 @@ import cookieParser from "cookie-parser";
 
 import authRoutes from "./routes/auth.routes.js";
 import superAdminRoutes from "./routes/superAdmin.routes.js";
+import adminRoutes from "./routes/admin.routes.js"
+
 const app = express();
 
 app.use(
@@ -33,6 +35,10 @@ app.use(
   superAdminRoutes
 );
 
+app.use(
+  "/api/admin",
+  adminRoutes
+);
 const PORT = process.env.PORT || 4000;
 
 app.listen(PORT, () => {
