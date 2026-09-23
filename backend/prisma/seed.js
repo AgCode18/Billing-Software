@@ -1,8 +1,28 @@
 import "dotenv/config";
-
-import bcrypt from "bcryptjs";
-
+import crypto from "crypto";
 import prisma from "../src/config/prisma.js";
+
+/**
+ * Hash a password using scrypt with a random salt.
+ * Returns "salt:hash" so it can be verified later.
+ */
+const hashPassword = (password) => {
+  const salt = crypto.randomBytes(16).toString("hex");
+  const hash = crypto.scryptSync(password, salt, 64).toString("hex");
+  return `${salt}:${hash}`;
+};
+
+/**
+ * Verify a plain password against a stored "salt:hash" string.
+ */
+export const verifyPassword = (password, storedHash) => {
+  const [salt, originalHash] = storedHash.split(":");
+  const hashToVerify = crypto.scryptSync(password, salt, 64).toString("hex");
+  return crypto.timingSafeEqual(
+    Buffer.from(originalHash, "hex"),
+    Buffer.from(hashToVerify, "hex")
+  );
+};
 
 const seed = async () => {
   try {
@@ -17,10 +37,7 @@ const seed = async () => {
       return;
     }
 
-    const hashedPassword = await bcrypt.hash(
-      "Admin@123",
-      12
-    );
+    const hashedPassword = hashPassword("Admin@123");
 
     const superAdmin = await prisma.user.create({
       data: {
@@ -44,4 +61,4 @@ const seed = async () => {
   }
 };
 
-seed(); 
+seed();
